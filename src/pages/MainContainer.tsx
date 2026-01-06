@@ -75,10 +75,17 @@ const MainContainer = () => {
   }));
 
   const [, setLoading] = useState(true);
+
+  // Calculate dynamic panel sizes based on collapse states
+  const collapsedSize = 7;
+  const collapsedCount = [isModelCollapsed, isTemplateCollapsed, isDataCollapsed].filter(Boolean).length;
+  const expandedCount = 3 - collapsedCount;
+  const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
+  
   const modelPanelRef = useRef<ImperativePanelHandle>(null);
   const templatePanelRef = useRef<ImperativePanelHandle>(null);
   const dataPanelRef = useRef<ImperativePanelHandle>(null);
-
+  
   const panelMap = {
   model: {
     ref: modelPanelRef,
@@ -92,31 +99,28 @@ const MainContainer = () => {
     ref: dataPanelRef,
     collapsed: isDataCollapsed
   },
-};
+  };
 
-const prevCollapsed = useRef({
-  model: isModelCollapsed,
-  template: isTemplateCollapsed,
-  data: isDataCollapsed,
-}); 
-
-useEffect(() => {
-  Object.entries(panelMap).forEach(([key, panel]) => {
-    if (prevCollapsed.current[key] !== panel.collapsed) {
-      panel.ref.current?.resize(panel.collapsed ? collapsedSize : expandedSize);
-    }
-  });
-
-  // Update previous states
-  prevCollapsed.current = {
+  const prevCollapsed = useRef({
     model: isModelCollapsed,
     template: isTemplateCollapsed,
     data: isDataCollapsed,
-  };
-}, [isModelCollapsed, isTemplateCollapsed, isDataCollapsed]);
+  }); 
 
-  const collapsedSize = 6
-  const expandedSize = 33
+  useEffect(() => {
+    Object.entries(panelMap).forEach(([key, panel]) => {
+      if (prevCollapsed.current[key] !== panel.collapsed) {
+        panel.ref.current?.resize(panel.collapsed ? collapsedSize : expandedSize);
+      }
+    });
+
+    // Update previous states
+    prevCollapsed.current = {
+      model: isModelCollapsed,
+      template: isTemplateCollapsed,
+      data: isDataCollapsed,
+    };
+  }, [isModelCollapsed, isTemplateCollapsed, isDataCollapsed]);
 
   return (
     <div className="main-container" style={{ backgroundColor }}>
@@ -126,27 +130,14 @@ useEffect(() => {
           <>
             <Panel defaultSize={62.5} minSize={30}>
               <div className="main-container-editors-panel" style={{ backgroundColor }}>
-                <div className=""
-                style={{
-                  height: 45,
-                  padding: "0px 10px",
-                  display: "flex",
-                  alignItems: "center"
-                }}
-                >
-                  <SampleDropdown setLoading={setLoading} />
-                </div>
                 <PanelGroup direction="vertical" className="main-container-editors-panel-group">
-                  <Panel ref={modelPanelRef} minSize={collapsedSize} maxSize={90}
-                  >
+                  <Panel ref={modelPanelRef} minSize={collapsedSize} maxSize={70}>
                     <div className="main-container-editor-section tour-concerto-model" >
-                      <div className={`main-container-editor-header 
-                      ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}
+                      <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}
                       
                       >
                         {/* Left side */}
-                        <div 
-                        className="main-container-editor-header-left"
+                        <div className="main-container-editor-header-left"
                         style={{
                           width: "100%",
                           display: "flex",
@@ -154,7 +145,14 @@ useEffect(() => {
                           alignItems: "center"
                         }}
                         >
-                          <span>Concerto Model</span>
+                          <div className="">
+                            <span
+                            style={{
+                              marginRight: "20px"
+                            }}
+                            >Concerto Model</span>
+                            <SampleDropdown setLoading={setLoading} />
+                          </div>
                           <button
                             className="collapse-button"
                             onClick={toggleModelCollapse}
@@ -185,7 +183,7 @@ useEffect(() => {
 
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel ref={templatePanelRef} minSize={collapsedSize} maxSize={90}>
+                  <Panel ref={templatePanelRef} minSize={collapsedSize} maxSize={70}>
                     <div className="main-container-editor-section tour-template-mark">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         <div 
@@ -229,7 +227,7 @@ useEffect(() => {
 
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel ref={dataPanelRef} minSize={collapsedSize} maxSize={90}>
+                  <Panel ref={dataPanelRef} minSize={collapsedSize} maxSize={70}>
                     <div className="main-container-editor-section tour-json-data">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         <div 
@@ -318,7 +316,6 @@ useEffect(() => {
                 </div>
               </div>
             </Panel>
-            {/* <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" /> */}
           </>
         )}
         {isAIChatOpen && (
